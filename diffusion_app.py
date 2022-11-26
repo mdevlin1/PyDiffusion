@@ -1,6 +1,6 @@
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
-from torch import autocast
+import torch
 from diffusers import StableDiffusionPipeline
 
 class DiffusionApp(QtWidgets.QWidget):
@@ -25,16 +25,17 @@ class DiffusionApp(QtWidgets.QWidget):
     def generate_image(self):
         pipe = StableDiffusionPipeline.from_pretrained(
           "CompVis/stable-diffusion-v1-4",
+          torch_dtype=torch.float16,
+          revision="fp16",
           use_auth_token=False
         ).to("cuda")
+        pipe.enable_attention_slicing()
 
-        with autocast("cuda"):
-          image = pipe( self.prompt.text() )["sample"][0]
+        image = pipe( self.prompt.text() ).images[0]
 
-        iamge.save("test_image.png")
+        image.save("test_image.png")
         image = QtGui.QPixmap("test_image.png")
         self.image_viewer.setPixmap( image )
-
 
 if __name__=="__main__":
     app = QtWidgets.QApplication([])
