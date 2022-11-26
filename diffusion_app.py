@@ -1,5 +1,7 @@
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
+from torch import autocast
+from diffusers import StableDiffusionPipeline
 
 class DiffusionApp(QtWidgets.QWidget):
     def __init__(self):
@@ -9,16 +11,27 @@ class DiffusionApp(QtWidgets.QWidget):
         self.text = QtWidgets.QLabel("PyDiffusion",
                                      alignment=QtCore.Qt.AlignCenter)
         self.image_viewer = QtWidgets.QLabel()
+        self.prompt = QtWidgets.QLineEdit()
 
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.addWidget(self.text)
         self.layout.addWidget(self.image_viewer)
+        self.layout.addWidget(self.prompt)
         self.layout.addWidget(self.button)
 
         self.button.clicked.connect(self.generate_image)
 
     @QtCore.Slot()
     def generate_image(self):
+        pipe = StableDiffusionPipeline.from_pretrained(
+          "CompVis/stable-diffusion-v1-4",
+          use_auth_token=False
+        ).to("cuda")
+
+        with autocast("cuda"):
+          image = pipe( self.prompt.text() )["sample"][0]
+
+        iamge.save("test_image.png")
         image = QtGui.QPixmap("test_image.png")
         self.image_viewer.setPixmap( image )
 

@@ -1,0 +1,4 @@
+pyside6
+torch==1.13.0+cu117
+diffusers
+transformers==4.19.2
